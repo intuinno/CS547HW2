@@ -79,7 +79,7 @@ void estTrainModel(ifstream &trainIDFile, double *pWRelModel, double *pWIrrelMod
 
     if (Rel==1){
       /*!!!!!! Implement the code to accumulate the number of relevant training documents !!!!!!*/     
-
+	numRelTrainDocs++;
     }
     
 
@@ -94,10 +94,13 @@ void estTrainModel(ifstream &trainIDFile, double *pWRelModel, double *pWIrrelMod
       if (Rel==1){
 	//this is a relevant document
         /*!!!!!!!!!! Implement the code to accumulate term counts for relevant model !!!!!!*/
-
+	pWRelModel[termID] += termFreq;
+	numWordRelTrainDocs += termFreq;
       }else{
 	//this is not a relevant document
         /*!!!!!!!!!! Implement the code to accumulate term counts for irrelevant model !!!!!!*/
+	pWIRelModel[termID] += termFreq;
+	numWordIrrelTrainDocs += termFreq;
 
       }      
     }   
@@ -109,6 +112,9 @@ void estTrainModel(ifstream &trainIDFile, double *pWRelModel, double *pWIrrelMod
   for (int t=0; t<=vocabSize; t++){
     /*!!!!!! Implement the code to normlize the relevant and irrelevant models (i.e. Sum_wP(w)=1 )  !!!!!!*/
     /*!!!!!! Please use smoothing method !!!!!!*/
+	pWRelModel[t] = (1 + pWRelModel[t])/(vocabSize + numWordRelTrainDocs + numWordIrrelTrainDocs);
+
+	pWIrelMode[t] = (1 + pWRelModel[t])/(vocabSize + numWordRelTrainDocs + numWordIrrelTrainDocs);
 
   }
 
