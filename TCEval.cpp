@@ -99,7 +99,7 @@ void estTrainModel(ifstream &trainIDFile, double *pWRelModel, double *pWIrrelMod
       }else{
 	//this is not a relevant document
         /*!!!!!!!!!! Implement the code to accumulate term counts for irrelevant model !!!!!!*/
-	pWIRelModel[termID] += termFreq;
+	pWIrrelModel[termID] += termFreq;
 	numWordIrrelTrainDocs += termFreq;
 
       }      
@@ -114,7 +114,7 @@ void estTrainModel(ifstream &trainIDFile, double *pWRelModel, double *pWIrrelMod
     /*!!!!!! Please use smoothing method !!!!!!*/
 	pWRelModel[t] = (1 + pWRelModel[t])/(vocabSize + numWordRelTrainDocs + numWordIrrelTrainDocs);
 
-	pWIrelMode[t] = (1 + pWRelModel[t])/(vocabSize + numWordRelTrainDocs + numWordIrrelTrainDocs);
+	pWIrrelModel[t] = (1 + pWIrrelModel[t])/(vocabSize + numWordRelTrainDocs + numWordIrrelTrainDocs);
 
   }
 
@@ -206,14 +206,25 @@ void  getTestRst(ifstream &testIDFile, double* pWRelModel, double* pWIrrelModel,
       int termID=info->termID();
 
       /*!!!!!! Implement the code to accumuate log probability (i.e., log-likelihood) give relevant model and irrelevant model !!!!!!*/
-    
+  	logRelProb += termFreq * log(pWRelModel[termID]);
+	logIrrelProb += termFreq * log(pWIrrelModel[termID]);
+	
+
     }
 
     /*Calculate the probability of a document being relevant (i.e. outProb)*/
     /*!!!!!! Please use Bayes Rule; please incoporate the prior probability (i.e., pRel) into the calculating of factor in the next line!!!!!!*/
     double outProb;
+    double relProb;
+    double irrelProb;
 
+	logRelProb  = log(pRel) + logRelProb;
+	logIrrelProb = log(1-pRel) + logIrrelProb;
 
+	relProb = exp(logRelProb);
+	irrelProb = exp(logIrrelProb);
+
+	outProb =  relProb / (relProb + irrelProb);
     results.PushValue(docID,outProb);
     numTestDoc++;
   }
