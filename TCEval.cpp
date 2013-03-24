@@ -112,9 +112,9 @@ void estTrainModel(ifstream &trainIDFile, double *pWRelModel, double *pWIrrelMod
   for (int t=0; t<=vocabSize; t++){
     /*!!!!!! Implement the code to normlize the relevant and irrelevant models (i.e. Sum_wP(w)=1 )  !!!!!!*/
     /*!!!!!! Please use smoothing method !!!!!!*/
-	pWRelModel[t] = (1 + pWRelModel[t])/(vocabSize + numWordRelTrainDocs + numWordIrrelTrainDocs);
+	pWRelModel[t] = (1 + pWRelModel[t])/(vocabSize+1 + numWordRelTrainDocs );
 
-	pWIrrelModel[t] = (1 + pWIrrelModel[t])/(vocabSize + numWordRelTrainDocs + numWordIrrelTrainDocs);
+	pWIrrelModel[t] = (1 + pWIrrelModel[t])/(vocabSize+1 +  numWordIrrelTrainDocs);
 
   }
 
@@ -132,7 +132,7 @@ void  printTrainModel(double* pWRelModel, double* pWIrrelModel, double pRel, Ind
   IndexedRealVector::iterator it;  
   
 
-  cout<<"For Model Prior"<<endl;
+  cout<<"*****For Model Prior"<<endl;
   cout<<"Relevant Model:"<<pRel<<"    "<<"Irrelvant Model:"<<1-pRel<<endl;
 
 
@@ -144,7 +144,7 @@ void  printTrainModel(double* pWRelModel, double* pWIrrelModel, double pRel, Ind
     pSumIrrel+=pWIrrelModel[t];
   }
   cout<<"Prob Sum is: "<<pSumRel<<" and "<< pSumIrrel<<endl;
-
+  cout <<"Deok are you sure?" << endl;
   wordVec.clear();
   for (int t=0; t<=vocabSize; t++){
     wordVec.PushValue(t,pWRelModel[t]);
@@ -206,8 +206,8 @@ void  getTestRst(ifstream &testIDFile, double* pWRelModel, double* pWIrrelModel,
       int termID=info->termID();
 
       /*!!!!!! Implement the code to accumuate log probability (i.e., log-likelihood) give relevant model and irrelevant model !!!!!!*/
-  	logRelProb += termFreq * log(pWRelModel[termID]);
-	logIrrelProb += termFreq * log(pWIrrelModel[termID]);
+  	logRelProb += termFreq * log(pWRelModel[termID]/pWIrrelModel[termID]);
+//	logIrrelProb += termFreq * log(pWIrrelModel[termID]);
 	
 
     }
@@ -215,16 +215,27 @@ void  getTestRst(ifstream &testIDFile, double* pWRelModel, double* pWIrrelModel,
     /*Calculate the probability of a document being relevant (i.e. outProb)*/
     /*!!!!!! Please use Bayes Rule; please incoporate the prior probability (i.e., pRel) into the calculating of factor in the next line!!!!!!*/
     double outProb;
-    double relProb;
-    double irrelProb;
+    double logProb;
+  //  double irrelProb;
 
-	logRelProb  = log(pRel) + logRelProb;
-	logIrrelProb = log(1-pRel) + logIrrelProb;
+//	logRelProb  = log(pRel) + logRelProb;
+//	logIrrelProb = log(1-pRel) + logIrrelProb;
 
-	relProb = exp(logRelProb);
-	irrelProb = exp(logIrrelProb);
+//	relProb = exp(logRelProb);
+//	irrelProb = exp(logIrrelProb);
 
-	outProb =  relProb / (relProb + irrelProb);
+	logProb =  log(pRel /(1-pRel)) +  logRelProb;
+
+	if (logProb > 700) {
+		logProb = 700;
+	}
+
+	outProb = exp(logProb) / (1+exp(logProb));
+
+	if(isnan(outProb)){
+
+		cout << "Hello" <<endl;
+	}
     results.PushValue(docID,outProb);
     numTestDoc++;
   }
